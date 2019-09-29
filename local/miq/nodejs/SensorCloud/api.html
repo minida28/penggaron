@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SensorCloud Web App</title>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"> -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script> -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/baseguide@3.2.1/dist/css/baseguide.min.css"> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script> -->
+    <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script> -->
+    <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script> -->
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> -->
+    <script src="js-xdr.js">
+
+        // var xdr = require('js-xdr');
+        var test = XDR.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(test);
+        console.log(gila());
+
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Content here -->
+
+        <div class="jumbotron jumbotron-fluid">
+            <div class="container">
+                <h1 class="display-4">SensorCloud Web App</h1>
+                <p class="lead">Created by Iqbal</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <form>
+                <div class="form-group row">
+                    <label for="device_id" class="col-sm-2 col-form-label">Device Id</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="device_id" placeholder="">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="container">
+            <div class="field">
+                <p class="control">
+                    <div class="select">
+                        <select id="selectCommand" onchange="something(this);">
+                            <option value="getSensor">Get Sensor</option>
+                            <option value="authenticate" selected>Authenticate</option>
+                            <option value="addSensor">Add Sensor</option>
+                            <option value="deleteSensor">Delete Sensor</option>
+                            <option value="addChannel">Add Channel</option>
+                            <option value="deleteChannel">Delete Channel</option>
+                            <option value="uploadData">Upload Data</option>
+                            <option value="downloadTimeSeriesData">Download Time Series Data</option>
+                            <option value="downloadLatestTimeSeriesData">Download Latest Time Series Data</option>
+                        </select>
+                    </div>
+                </p>
+            </div>
+            <div class="field">
+                <p class="control">
+                    <button class="button is-success" onclick="Run()">
+                        Run
+                    </button>
+                </p>
+            </div>
+        </div>
+
+        <div class="container" id="sensorAndChannel">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">Sensors</button>
+                    <div class="dropdown-menu" id="sensorDropDown" onchange="selectSensorDropDown(this)">
+                        <!-- <a class="dropdown-item" href="#">Action</a> -->
+                        <!-- <a class="dropdown-item" href="#">Another action</a> -->
+                        <!-- <a class="dropdown-item" href="#">Something else here</a> -->
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="sensorName" aria-label="Text input with dropdown button">
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">Channels</button>
+                    <div class="dropdown-menu" id="channelDropDown" onchange="selectChannelDropDown(this)">
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="channelName" aria-label="Text input with dropdown button">
+            </div>
+        </div>
+
+        <div class="container" name="command" id="getSensor" style="display:none">
+            <div class="row" id="sensorList">
+            </div>
+        </div>
+
+        <div class="container" name="command" id="addSensor" style="display:none">
+            <form>
+                <div class="form-group">
+                    <label for="addSensor_sensorLabel">Sensor Type</label>
+                    <input type="text" class="form-control" id="addSensor_sensorType" placeholder="Sensor type"
+                        maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="addSensor_sensorLabel">Sensor Label</label>
+                    <input type="text" class="form-control" id="addSensor_sensorLabel" placeholder="Sensor label"
+                        maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="addSensor_sensorDesc">Sensor Description</label>
+                    <textarea class="form-control" id="addSensor_sensorDesc" maxlength="200"
+                        onkeyup="charLeft(this)"></textarea>
+                    <small id="sensorDescCharLeft" class="form-text text-muted">Characters left: </small>
+                </div>
+                <button class="btn btn-primary" onclick="AddSensor()">Add Sensor</button>
+            </form>
+        </div>
+
+        <div class="container" name="command" id="addChannel" style="display:none">
+            <form>
+                <div class="form-group">
+                    <label for="addChannel_sensorName">Sensor Name</label>
+                    <input type="text" class="form-control" id="addChannel_sensorName" placeholder="Sensor Name"
+                        maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="addChannel_channelName">Channel Name</label>
+                    <input type="text" class="form-control" id="addChannel_channelName" placeholder="Channel Name"
+                        maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="addChannel_channelLabel">Channel Label</label>
+                    <input type="text" class="form-control" id="addChannel_channelLabel" placeholder="Channel Label"
+                        maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="addChannel_channelDesc">Channel Description</label>
+                    <textarea class="form-control" id="addChannel_channelDesc" maxlength="200"
+                        onkeyup="charLeft(this)"></textarea>
+                    <small id="channelDescCharLeft" class="form-text text-muted">Characters left: </small>
+                </div>
+                <button class="btn btn-primary" onclick="AddChannel()">Add Channel</button>
+            </form>
+        </div>
+
+        <div class="container" name="command" id="uploadData" style="display:none">
+            <form>
+                <button class="btn btn-primary" onclick="UploadData()">Upload Data</button>
+            </form>
+        </div>
+
+        <div class="container" name="command" id="downloadTimeSeriesData" style="display:none">
+            <div class="form-group">
+                <div id="reportrange"
+                    style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                    <i class="fa fa-calendar"></i>&nbsp;
+                    <span></span> <i class="fa fa-caret-down"></i>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="DownloadTimeSeriesData()">Download Data</button>
+        </div>
+
+        <div class="container" name="command" id="downloadLatestTimeSeriesData" style="display:none">
+            <form>
+                <button class="btn btn-primary" onclick="DownloadLatestTimeSeriesData()">Download</button>
+            </form>
+        </div>
+
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <!-- http://www.daterangepicker.com/#example1 -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+
+    <script type="text/javascript">
+
+        window.onload = function () {
+            GetSensor();
+            // getConfigValues("config/location");
+            // getConfigValues("/status/sholatschedule");
+            // setInterval(function () { getConfigValues("/status/sholatschedule") }, 1000);
+            // wsOpen();
+            // startPolling();
+            // startConnectionTimer();
+        }
+
+        var SENSORS = new Object();
+
+        var DEBUGLOG = 0;
+
+        var lordVersion = 1;
+
+        function htmlToElement(html) {
+            var template = document.createElement('template');
+            html = html.trim(); // Never return a text node of whitespace as the result
+            template.innerHTML = html;
+            return template.content.firstChild;
+        }
+
+        // source: https://stackoverflow.com/a/34841026
+        function toHHMMSS(secs) {
+            var sec_num = parseInt(secs, 10)
+            var hours = Math.floor(sec_num / 3600)
+            var minutes = Math.floor(sec_num / 60) % 60
+            var seconds = sec_num % 60
+
+            return {
+                "hours": hours,
+                "minutes": minutes,
+                "seconds": seconds
+            };
+
+            // return [hours, minutes, seconds]
+            //     .map(v => v < 10 ? "0" + v : v)
+            //     .filter((v, i) => v !== "00" || i > 0)
+            //     .join(":")
+        }
+
+        var dtpickerStart;
+        var dtpickerEnd;
+
+        $(function () {
+
+            var start = moment().subtract(29, 'days');
+            var end = moment();
+
+            function cb(start, end) {
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                console.log('date picker', start, end);
+                console.log('date picker unix ms', start.valueOf(), end.valueOf());
+                dtpickerStart = start;
+                dtpickerEnd = end;
+            }
+
+            $('#reportrange').daterangepicker({
+                timePicker: true,
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                locale: {
+                    format: 'M/DD hh:mm A'
+                }
+            }, cb);
+
+            cb(start, end);
+
+        });
+
+        something(document.getElementById('selectCommand'));
+
+        function something(element) {
+            if (element == document.getElementById('selectCommand')) {
+                var text = element.options[element.selectedIndex].text;
+                var val = element.options[element.selectedIndex].value;
+                // console.log(val, text);
+                var elNames = document.getElementsByName('command');
+
+                elNames.forEach(function (elmen) {
+                    // console.log(elmen.id);
+                    if (elmen.id === element.value) {
+                        // console.log('true');
+                        elmen.style.display = "inline-block";
+                    } else {
+                        elmen.style.display = "none";
+                    }
+                });
+            }
+        }
+
+
+        function Run() {
+            var sel = document.getElementById("selectCommand").value;
+            if (sel === "authenticate") {
+                Authenticate();
+            } else if (sel === 'getSensor') {
+                GetSensor();
+            } else if (sel === 'downloadTimeSeriesData') {
+                DownloadTimeSeriesData();
+            }
+        }
+
+        function selectSensorDropDown(e) {
+            // console.log(e.text);
+            document.getElementById("sensorName").value = e.text;
+
+            $('#channelDropDown').empty();
+            $('#channelName').value = "";
+
+            var channelKeys = Object.keys(SENSORS.sensors[e.text].channels);
+
+            if (channelKeys[0]) {
+                channelKeys.forEach(function (elmen, index) {
+                    var dropDown = document.getElementById("channelDropDown");
+                    var item = document.createElement("a");
+                    item.setAttribute("class", "dropdown-item");
+                    item.onclick = function () { selectChannelDropDown(this); };
+                    dropDown.appendChild(item);
+                    item.text = item.value = elmen;
+                    console.log(elmen);
+                });
+
+                document.getElementById("channelName").value = channelKeys[0];
+            } else {
+                document.getElementById("channelName").value = "";
+            }
+
+        }
+
+        function selectChannelDropDown(e) {
+            // console.log(e.text);
+            document.getElementById("channelName").value = e.text;
+        }
+
+        var lordHostName = "sensorcloud.microstrain.com";
+
+
+        // email: orangsoroako@gmail.com
+        var device_id = "OAPI00D4CMV2RPWF";
+        var key = "2d73ff3acdf9adf70a0c7641c5c6c2e9d185cba06cdb42d1ca6ace5273fdec2b";
+
+        // email: iqbal.tiro@gmail.com
+        // var device_id = "OAPI009ZGGUBW0CN";
+        // var key = "e087cb6ea7b36350f21986a0da2f3fbbbaf85f9fe4ebc67e1c0e68ba0e778a29";
+
+        var auth_server;
+        var auth_token;
+        var auth_reserved;
+        var lastAuthenticate = 0;
+
+        document.getElementById('device_id').value = device_id;
+
+        for (var i in document.getElementsByTagName('textarea')) {
+            charLeft(document.getElementsByTagName('textarea')[i]);
+        }
+
+        function charLeft(element) {
+            // console.log(element);
+            if (element.id === 'addChannel_channelDesc') {
+                document.getElementById('channelDescCharLeft').textContent = "Characters left: " + (200 - document.getElementById(element.id).value.length);
+                console.log('Characters left:', 200 - document.getElementById(element.id).value.length);
+            }
+        };
+
+
+        async function Authenticate() {
+
+            // checking if last authenticate is still less than 6 hours
+            var t = Date.now() / 1000;
+            var diff = t - lastAuthenticate;
+
+            diffArray = toHHMMSS(diff);
+            // console.log(diffArray);
+
+            if (lastAuthenticate != 0) {
+                if (diffArray.hours != 0 && diffArray.minutes != 0) {
+                    // console.log('Last authentication is %d secs ago.', diffArray.seconds);
+                    console.log('Last authentication: %d hours %d mins %d secs ago',
+                        diffArray.hours, diffArray.minutes, diffArray.seconds);
+                } else if (diffArray.hours == 0 && diffArray.minutes != 0) {
+                    console.log('Last authentication: %d mins %d secs ago', diffArray.minutes, diffArray.seconds);
+                }
+                else {
+                    console.log('Last authentication: %d secs ago', diffArray.seconds);
+                }
+            }
+
+            if (diff < 21600) {
+                console.log('Authentication is not needed');
+                return;
+            } else {
+                console.log('Re-authentication is needed');
+            }
+
+
+            console.log('\r\n------------------------------- Authenticating -------------------------------');
+
+            var path = `/SensorCloud/devices/${device_id}/authenticate/?version=1&key=${key}`;
+            var url = 'https://' + lordHostName + path;
+
+            const request = new Request(url, {
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                }
+            })
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/xdr',
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 100,
+            }
+
+            await fetch(url, req_options)
+                .then(function (response) {
+                    // console.log("Response:", response);
+                    if (response.ok) {
+                        var acceptHeader = req_options.headers['Accept'];
+                        if (acceptHeader === 'application/json') {
+                            return response.json();
+                        } else if (acceptHeader === 'application/xdr') {
+                            return response.arrayBuffer();
+                            // return response.text();
+                        }
+                    } else {
+                        throw new Error('Network response was not ok.');
+                    }
+                })
+                .then(function (data) {
+                    // console.log(data);
+                    var acceptHeader = req_options.headers['Accept'];
+                    if (acceptHeader === 'application/json') {
+                        auth_server = data.server;
+                        auth_token = data.auth_token;
+                        // console.log(auth_server, auth_token);
+                    } else if (acceptHeader === 'application/xdr') {
+                        var len = data.byteLength;
+
+                        if (DEBUGLOG) {
+                            // Data View
+                            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+                            var view1 = new DataView(data);
+                            // console.log(view1.getInt32(0).toString(16));
+                            var arr = [];
+                            for (var i = 0; i < len; i++) {
+                                // var el = view1.getUint32(i).toString(16);
+                                var el = view1.getUint8(i).toString(16);
+                                // console.log(el);
+                                arr[i] = el;
+                            }
+                            console.log(arr.join(" "));
+                        }
+
+                        let xdr = XDR.config((xdr) => {
+
+                            xdr.struct('Signature', [
+                                ["auth_token", xdr.string(1000)],
+                                ["auth_server", xdr.string(1000)],
+                                ["auth_reserved", xdr.string(1000)],
+                            ]);
+                        });
+
+                        // // var sig = xdr.Signature.fromXDR(data);
+
+                        // var constructedData = [].concat(arr);
+                        var sig = xdr.Signature.fromXDR(data);
+
+                        // console.log(sig);
+
+                        var objToken = sig._attributes;
+                        if (objToken.hasOwnProperty('auth_server')) {
+                            auth_server = objToken.auth_server.toString();
+                        }
+                        if (objToken.hasOwnProperty('auth_token')) {
+                            auth_token = objToken.auth_token.toString();
+                        }
+                        if (objToken.hasOwnProperty('auth_reserved')) {
+                            auth_reserved = objToken.auth_reserved.toString();
+                        }
+
+                        if (1) {
+                            console.log('auth_server\t= %s', auth_server);
+                            console.log('auth_token\t= %s', auth_token);
+                            console.log('auth_reserved\t= %s', auth_reserved);
+                        }
+
+                        lastAuthenticate = t;
+
+                        console.log("Authenticate completed succesfully.");
+                    }
+                }).catch(function (error) {
+                    console.log('There has been a problem with your fetch operation: ', error.message);
+                });
+
+        }
+
+        async function AddSensor(sensor_name, sensor_type, sensor_label, sensor_desc) {
+            // function AddChannel() {
+            console.log('\r\n------------------------------- Adding Sensor -------------------------------');
+
+            await Authenticate();
+
+            // var device_id = document.getElementById("device_id").value;
+            sensor_name = document.getElementById("sensorName").value;
+
+            if (sensor_name == null || sensor_name === "" || sensor_name == undefined) {
+                alert('Sensor Name cannot be empty')
+                return;
+            }
+
+            sensor_type = document.getElementById("addSensor_sensorType").value;
+
+            if (sensor_type == null || sensor_type === "" || sensor_type == undefined) {
+                sensor_type = "";
+            }
+
+            sensor_label = document.getElementById("addSensor_sensorLabel").value;
+
+            if (sensor_label == null || sensor_label === "" || sensor_label == undefined) {
+                sensor_label = "";
+            }
+
+            sensor_desc = document.getElementById("addSensor_sensorDesc").value;
+
+            if (sensor_desc == null || sensor_desc === "" || sensor_desc == undefined) {
+                sensor_desc = "";
+            }
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            let xdr = XDR.config((xdr) => {
+                xdr.struct('Signature', [
+                    ['version', xdr.int()],
+                    ['sensor_type', xdr.string()],
+                    ['sensor_label', xdr.string()],
+                    ['sensor_desc', xdr.string()],
+                ]);
+            });
+
+            let data = new xdr.Signature();
+            data.version(lordVersion);
+            data.sensor_type(sensor_type);
+            data.sensor_label(sensor_label);
+            data.sensor_desc(sensor_desc);
+
+            var dataXdr = data.toXDR();
+
+            const req_options = {
+                method: 'PUT',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    "Content-Type": "application/xdr",
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 10000,
+                body: dataXdr,
+            }
+
+            await fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    if (response.ok) {
+                        console.log('Sensor CREATED, response status', response.status);
+
+                        GetSensor();
+
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                }).catch(function (error) {
+                    console.log(error.message);
+                });
+
+        }
+
+        async function DeleteSensor(sensor_name) {
+            console.log('\r\n------------------------------- Delete Sensor -------------------------------');
+
+            await Authenticate();
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const req_options = {
+                method: 'DELETE',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    // "Content-Type": "application/xdr",
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 10000,
+            }
+
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    if (response.ok) {
+                        console.log('Sensor DELETED, response status', response.status);
+
+                        GetSensor();
+
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                }).catch(function (error) {
+                    console.log('There has been a problem with your fetch operation: ', error.message);
+                });
+        }
+
+        async function AddChannel(sensor_name, channel_name, channel_label, channel_desc) {
+            // function AddChannel() {
+            console.log('\r\n------------------------------- Adding Channel -------------------------------');
+
+            await Authenticate();
+
+            // var device_id = document.getElementById("device_id").value;
+            sensor_name = document.getElementById("addChannel_sensorName").value;
+            channel_name = document.getElementById("addChannel_channelName").value;
+
+            if (sensor_name == null || sensor_name === "" || channel_name == null || channel_name === "") {
+                alert('Sensor Name and Channel Name cannot be empty')
+                return;
+            }
+
+            channel_label = document.getElementById("addChannel_channelLabel").value;
+
+            if (channel_label == null || channel_label === "") {
+                channel_label = "";
+            }
+
+            channel_desc = document.getElementById("addChannel_channelDesc").value;
+
+            if (channel_desc == null || channel_desc === "") {
+                channel_desc = "";
+            }
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            let xdr = XDR.config((xdr) => {
+                xdr.struct('Signature', [
+                    ['version', xdr.int()],
+                    ['channel_label', xdr.string()],
+                    ['channel_desc', xdr.string()],
+                ]);
+            });
+
+            let data = new xdr.Signature();
+            data.version(lordVersion);
+            data.channel_label(channel_label);
+            data.channel_desc(channel_desc);
+
+            var dataXdr = data.toXDR();
+
+            const req_options = {
+                method: 'PUT',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    "Content-Type": "application/xdr",
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 10000,
+                body: dataXdr,
+            }
+
+            await fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    if (response.ok) {
+                        console.log('Channel CREATED, response status', response.status);
+
+                        GetSensor();
+
+                    } else {
+                        throw new Error(response.arrayBuffer());
+                    }
+                }).catch(function (error) {
+                    console.log(error.message);
+                });
+
+        }
+
+        async function DeleteChannel(sensor_name, channel_name) {
+            console.log('\r\n------------------------------- Delete Channel -------------------------------');
+
+            await Authenticate();
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const req_options = {
+                method: 'DELETE',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    // "Content-Type": "application/xdr",
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 10000,
+            }
+
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    if (response.ok) {
+                        console.log('Channel DELETED, response status', response.status);
+
+                        GetSensor();
+
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                }).catch(function (error) {
+                    console.log('There has been a problem with your fetch operation: ', error.message);
+                });
+        }
+
+        async function GetSensor() {
+            console.log('\r\n------------------------------- Get Sensors -------------------------------');
+
+            await Authenticate();
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const request = new Request(url, {
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                }
+            })
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/xdr',
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+            }
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log(response);
+                    return response.arrayBuffer();
+                    // return response.text();
+                })
+                .then(function (data) {
+
+                    if (DEBUGLOG) {
+                        console.log(data);
+                        var len = data.byteLength;
+                        var view1 = new DataView(data);
+                        var arr = [];
+                        for (var i = 0; i < len; i++) {
+                            var el = view1.getUint8(i).toString(16);
+                            arr[i] = el;
+                        }
+                        console.log(arr.join(" "));
+                    }
+
+                    let xdr = XDR.config((xdr) => {
+                        xdr.struct("Units", [
+                            ["stored_unit", xdr.string(1000)],
+                            ["preferred_unit", xdr.string(1000)],
+                            ["unit_timestamp", xdr.uhyper()],
+                            ["slope", xdr.float()],
+                            ["offset", xdr.float()],
+                        ]);
+
+                        xdr.struct("Streams", [
+                            ["stream_type", xdr.string(1000)],
+                            ["total_bytes", xdr.int()],
+                            ["units", xdr.varArray(xdr.lookup("Units"))],
+                        ]);
+
+                        xdr.struct("Channels", [
+                            ["name", xdr.string(1000)],
+                            ["label", xdr.string(1000)],
+                            ["desc", xdr.string(1000)],
+                            ["streams", xdr.varArray(xdr.lookup("Streams"))],
+                        ]);
+
+                        xdr.struct("Sensors", [
+                            ["name", xdr.string(1000)],
+                            ["type", xdr.string(1000)],
+                            ["label", xdr.string(1000)],
+                            ["desc", xdr.string(1000)],
+                            ["channels", xdr.varArray(xdr.lookup("Channels"))],
+                        ]);
+
+                        xdr.struct('Signature', [
+                            ['version', xdr.int()],
+                            ["sensors", xdr.varArray(xdr.lookup("Sensors"))],
+                        ]);
+                    });
+
+                    var sig = xdr.Signature.fromXDR(data);
+
+                    console.log(sig);
+
+                    $('#sensorList').empty();
+
+                    // var SENSORS = new Object();
+
+                    var keyVersion = 'version';
+                    var keySensors = 'sensors';
+                    var keyChannels = 'channels';
+                    var keyStreams = 'streams';
+                    var keyUnits = 'units';
+
+                    if (sig._attributes.hasOwnProperty(keyVersion)) {
+                        var valVersion = sig._attributes[keyVersion];
+                        SENSORS[keyVersion] = valVersion;
+                        console.log("VERSION version=%s", valVersion.toString());
+                    }
+                    if (sig._attributes.hasOwnProperty(keySensors)) {
+                        var objSensor = sig._attributes[keySensors];
+                        SENSORS[keySensors] = new Object();
+                        for (i in objSensor) {
+
+                            var sensorName = objSensor[i]._attributes.name.toString();
+                            var sensorType = objSensor[i]._attributes.type.toString();
+                            var sensorLabel = objSensor[i]._attributes.label.toString();
+                            var sensorDesc = objSensor[i]._attributes.desc.toString();
+
+                            SENSORS[keySensors][sensorName] = new Object();
+                            var jsonSensors = SENSORS[keySensors][sensorName];
+
+                            jsonSensors.type = sensorType;
+                            jsonSensors.label = sensorLabel;
+                            jsonSensors.desc = sensorDesc;
+
+                            // SENSORS[keySensors][i] = new Object();
+
+                            // SENSORS[keySensors][i]['name'] = sensorName;
+                            // SENSORS[keySensors][i]['type'] = sensorType;
+                            // SENSORS[keySensors][i]['label'] = sensorLabel;
+                            // SENSORS[keySensors][i]['desc'] = sensorDesc;
+
+                            var strHtml = `<div class="col-sm-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${sensorName}</h5>
+                                                <h6 class="card-subtitle mb-2 text-muted">${sensorLabel}</h6>
+                                                <p class="card-text">${sensorDesc}</p>
+                                                <p>
+                                                    <form id="${sensorName}">
+                                                    </form>
+                                                </p>
+                                                <button type="button" class="btn btn-primary" onclick="DeleteSensor('${sensorName}')">Delete Sensor</button>                                                
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            // <a class="btn btn-primary" role="button" onclick="DeleteChannel('${sensorName}')">Delete Sensor</a>
+
+                            var objHtml = htmlToElement(strHtml);
+
+                            document.getElementById("sensorList").appendChild(objHtml);
+
+                            // var objSensor = sig._attributes.sensors[i];
+                            console.log('SENSOR name=[%s] type=[%s] label=[%s] desc=[%s]',
+                                sensorName,
+                                sensorType,
+                                sensorLabel,
+                                sensorDesc
+                            );
+
+                            if (objSensor[i]._attributes.hasOwnProperty(keyChannels)) {
+                                var objChannel = objSensor[i]._attributes.channels;
+                                // SENSORS[keySensors][i][keyChannels] = new Array();
+                                jsonSensors[keyChannels] = new Object();
+                                for (j in objChannel) {
+
+                                    var channelName = objChannel[j]._attributes.name.toString();
+                                    var channelLabel = objChannel[j]._attributes.label.toString();
+                                    var channelDesc = objChannel[j]._attributes.desc.toString();
+
+                                    console.log('\tCHANNEL name=[%s] label=[%s] desc=[%s]',
+                                        channelName,
+                                        channelLabel,
+                                        channelDesc
+                                    );
+
+                                    jsonSensors[keyChannels][channelName] = new Object();
+
+                                    var jsonChannel = jsonSensors[keyChannels][channelName];
+
+                                    jsonChannel.label = channelLabel;
+                                    jsonChannel.desc = channelDesc;
+
+                                    var strHtml = `<form name="${channelName}">
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" value="${channelName}"></input>
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-outline-secondary" type="button" form="${channelName}" onclick="DeleteChannel('${sensorName}','${channelName}')">Button</button>
+                                                        </div>
+                                                    </div>
+                                                    </form>`;
+
+                                    var objHtml = htmlToElement(strHtml);
+                                    var elName = `${sensorName}`;
+                                    document.getElementById(elName).appendChild(objHtml);
+
+                                    if (objChannel[j]._attributes.hasOwnProperty(keyStreams)) {
+                                        var objStream = objChannel[j]._attributes.streams;
+                                        jsonChannel[keyStreams] = new Object();
+                                        var jsonStreams = jsonChannel[keyStreams];
+                                        for (k in objStream) {
+
+                                            var streamType = objStream[k]._attributes.stream_type.toString();
+                                            var streamTotalBytes = objStream[k]._attributes.total_bytes;
+
+                                            console.log('\t\tSTREAM stream_type=[%s] total_bytes=[%s]',
+                                                streamType,
+                                                streamTotalBytes,
+                                            );
+
+                                            jsonStreams.type = streamType;
+                                            jsonStreams.total_bytes = streamTotalBytes;
+
+                                            if (objStream[k]._attributes.hasOwnProperty(keyUnits)) {
+                                                var objUnit = objStream[k]._attributes.units;
+                                                jsonStreams[keyUnits] = new Object();
+                                                var jsonUnits = jsonStreams.units;
+                                                for (l in objUnit) {
+                                                    var stored_unit = objUnit[l]._attributes.stored_unit.toString();
+                                                    var preferred_unit = objUnit[l]._attributes.preferred_unit.toString();
+                                                    var unit_timestamp = Number(objUnit[l]._attributes.unit_timestamp.toString());
+                                                    var slope = objUnit[l]._attributes.slope;
+                                                    var offset = objUnit[l]._attributes.offset;
+
+                                                    console.log('\t\t\tUNIT stored_unit=[%s] preferred_unit=[%s] unit_timestamp=[%s] slope=[%s] offset=[%s]',
+                                                        stored_unit,
+                                                        preferred_unit,
+                                                        unit_timestamp,
+                                                        slope,
+                                                        offset,
+                                                    );
+
+                                                    jsonUnits.stored_unit = stored_unit;
+                                                    jsonUnits.preferred_unit = preferred_unit;
+                                                    jsonUnits.unit_timestamp = unit_timestamp;
+                                                    jsonUnits.slope = slope;
+                                                    jsonUnits.offset = offset;
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    console.log('SENSORS', SENSORS);
+
+                    $('#sensorDropDown').empty();
+
+                    var sensorKeys = Object.keys(SENSORS.sensors);
+
+                    if (sensorKeys[0]) {
+                        sensorKeys.forEach(function (elmen, index) {
+                            var dropDown = document.getElementById("sensorDropDown");
+                            var item = document.createElement("a");
+                            item.setAttribute("class", "dropdown-item");
+                            item.onclick = function () { selectSensorDropDown(this); };
+                            dropDown.appendChild(item);
+                            item.text = item.value = elmen;
+                            // console.log(elmen);
+                        });
+
+                        // fill the input sensor field with 1st sensor found
+                        document.getElementById("sensorName").value = sensorKeys[0];
+
+                        // fill the input channel field from 1st sensor found
+                        var channelKeys = Object.keys(SENSORS.sensors[sensorKeys[0]].channels);
+
+                        if (channelKeys[0]) {
+                            channelKeys.forEach(function (elmen, index) {
+                                var dropDown = document.getElementById("channelDropDown");
+                                var item = document.createElement("a");
+                                item.setAttribute("class", "dropdown-item");
+                                item.onclick = function () { selectChannelDropDown(this); };
+                                dropDown.appendChild(item);
+                                item.text = item.value = elmen;
+                                // console.log(elmen);
+                            });
+
+                            document.getElementById("channelName").value = channelKeys[0];
+                        } else {
+                            document.getElementById("channelName").value = "";
+                        }
+
+                    }
+
+                });
+        }
+
+
+
+        async function UploadData(sensor_name, channel_name, data) {
+            console.log('\r\n------------------------------- Uploading Data -------------------------------');
+
+            await Authenticate();
+
+            // var device_id = document.getElementById("device_id").value;
+            sensor_name = document.getElementById("sensorName").value;
+            channel_name = document.getElementById("channelName").value;
+
+            if (sensor_name == null || sensor_name === "" || sensor_name == undefined || channel_name == null || channel_name == undefined || channel_name === "") {
+                alert('Sensor Name and Channel Name cannot be empty')
+                return;
+            }
+
+            var dataXdr = GenerateSampleData();
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/streams/timeseries/data/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const req_options = {
+                method: 'POST',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    "Content-Type": "application/xdr",
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 20000,
+                body: dataXdr,
+            }
+
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    if (response.ok) {
+                        console.log('Data uploaded succesfully, response status', response.status);
+
+                        // GetSensor();
+
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                }).catch(function (error) {
+                    console.log('There has been a problem with your fetch operation: ', error.message);
+                });
+        }
+
+        function GenerateSampleData() {
+
+            console.log('\r\n------------------------------ Generate Sample Data ------------------------------');
+
+            // parameter
+            var lordVersion = 1;
+            var lordRateType = 1; // HERTZ
+            var lordSampleRate = 5
+            var lordPOINTS = 10000;
+
+            var method = 'CONVENTIONAL_PUSH'; // tested 85,000 data points OK!
+            // var method = 'CONVENTIONAL_FILL';
+            // var method = 'XDR'; // !!! MAXIMUM 5,460 data points only !!!
+
+            //
+
+            if (method === 'CONVENTIONAL_PUSH') {
+                var construct = [];
+                construct.push(XDR.Int.toXDR(lordVersion));
+                construct.push(XDR.Int.toXDR(lordRateType));
+                construct.push(XDR.Int.toXDR(lordSampleRate));
+                construct.push(XDR.Int.toXDR(lordPOINTS));
+
+                var timestamp_nanoseconds = Date.now() * 1000000;
+
+                var sampleInterval_nanoseconds;
+
+                if (lordRateType == 1 || lordRateType === 'HERTZ') {
+                    sampleInterval_nanoseconds = (1 / lordSampleRate) * 1000000000;
+                }
+
+                for (var i = 0; i < lordPOINTS; i++) {
+                    var t = timestamp_nanoseconds.toString(10);
+                    var t_xdr = (XDR.UnsignedHyper.fromString(t)).toXDR();
+
+                    var val = Math.sin(timestamp_nanoseconds / 20000000000.0);
+                    var val_xdr = XDR.Float.toXDR(val);
+
+                    construct.push(t_xdr);
+                    construct.push(val_xdr);
+
+                    // print last data
+                    if (i == lordPOINTS - 1) {
+                        console.log('last points', timestamp_nanoseconds, val);
+                    }
+
+                    timestamp_nanoseconds += sampleInterval_nanoseconds;
+                }
+
+                // prepare the Uint8Array
+                // first we count the length of the array
+                var len = 0;
+                construct.forEach(function (elmen) {
+                    elmen.forEach(function (elmen) {
+                        len++;
+                    });
+                });
+
+                // console.log('len', len);
+
+                // then create empty array with the known length
+                var concatArray = new Array(len);
+
+                // fill the array
+                var i = 0;
+                construct.forEach(function (elmen) {
+                    elmen.forEach(function (elmen) {
+                        concatArray[i] = elmen;
+                        i++;
+                    });
+                });
+
+                // convert to Uint8Array
+                var dataXdr = Uint8Array.from(concatArray);
+
+                var size = Object.keys(dataXdr).length;
+                console.log('dataXdr size', size);
+
+                return dataXdr;
+            }
+            else if (method === 'CONVENTIONAL_FILL') {
+
+                var numInitialData = 4;
+
+                var construct = new Array(numInitialData + (lordPOINTS * 2));
+
+                construct[0] = XDR.Int.toXDR(lordVersion);
+                construct[1] = XDR.Int.toXDR(lordRateType);
+                construct[2] = XDR.Int.toXDR(lordSampleRate);
+                construct[3] = XDR.Int.toXDR(lordPOINTS);
+
+                var timestamp_nanoseconds = Date.now() * 1000000;
+
+                var sampleInterval_nanoseconds;
+
+                if (lordRateType == 1 || lordRateType === 'HERTZ') {
+                    sampleInterval_nanoseconds = (1 / lordSampleRate) * 1000000000;
+                }
+
+                for (var i = numInitialData; i < numInitialData + (lordPOINTS * 2); i++) {
+                    var t = timestamp_nanoseconds.toString(10);
+                    var t_xdr = (XDR.UnsignedHyper.fromString(t)).toXDR();
+
+                    var val = Math.sin(timestamp_nanoseconds / 20000000000.0);
+                    var val_xdr = XDR.Float.toXDR(val);
+
+                    construct[i] = t_xdr;
+                    i++;
+                    construct[i] = val_xdr;
+
+                    timestamp_nanoseconds += sampleInterval_nanoseconds;
+                }
+
+                // prepare the Uint8Array
+                // first we count the length of the array
+                var len = 0;
+                construct.forEach(function (elmen) {
+                    elmen.forEach(function (elmen) {
+                        len++;
+                    });
+                });
+
+                // console.log('len', len);
+
+                // then create empty array with the known length
+                var concatArray = new Array(len);
+
+                // fill the array
+                var i = 0;
+                construct.forEach(function (elmen) {
+                    elmen.forEach(function (elmen) {
+                        concatArray[i] = elmen;
+                        i++;
+                    });
+                });
+
+                // convert to Uint8Array
+                var dataXdr = Uint8Array.from(concatArray);
+
+                var size = Object.keys(dataXdr).length;
+                console.log('dataXdr size', size);
+
+                return dataXdr;
+            }
+            else if (method === 'XDR') {
+
+                let xdr = XDR.config((xdr) => {
+                    xdr.struct("DataPoints", [
+                        ["timestamp", xdr.uhyper()],
+                        ["value", xdr.float()],
+                    ]);
+
+                    xdr.struct('Signature', [
+                        ['version', xdr.int()],
+                        ['rate_type', xdr.int()],
+                        ['sample_rate', xdr.int()],
+                        ["data_points", xdr.varArray(xdr.lookup("DataPoints"))],
+                    ]);
+                });
+
+                var timestamp_nanoseconds = Date.now() * 1000000;
+
+                var sampleInterval_nanoseconds;
+
+                if (lordRateType == 1 || lordRateType === 'HERTZ') {
+                    sampleInterval_nanoseconds = (1 / lordSampleRate) * 1000000000;
+                }
+
+                var arrayXdr = new Array(lordPOINTS);
+
+                for (var i = 0; i < lordPOINTS; i++) {
+                    var t = timestamp_nanoseconds.toString(10);
+
+                    var val = Math.sin(timestamp_nanoseconds / 20000000000.0);
+
+                    let member = new xdr.DataPoints({
+                        timestamp: XDR.UnsignedHyper.fromString(t),
+                        value: val
+                    })
+
+                    arrayXdr[i] = member;
+
+                    timestamp_nanoseconds += sampleInterval_nanoseconds;
+                }
+
+                let sig = new xdr.Signature({
+                    version: lordVersion,
+                    rate_type: lordRateType,
+                    sample_rate: lordSampleRate,
+                    data_points: arrayXdr,
+                });
+
+
+                console.log(sig);
+                var size = Object.keys(sig).length;
+                console.log('sig size', size);
+
+
+                var dataXdr = sig.toXDR(); // here that limits the maximum data points.... no solution yet...
+                // console.log(dataXdr);
+
+                size = Object.keys(dataXdr).length;
+                console.log('dataXdr size', size);
+
+                return dataXdr;
+            }
+        }
+
+        async function DownloadTimeSeriesData(sensor_name, channel_name, start_time, end_time) {
+            console.log('\r\n------------------------------- DownLoad Time Series Data -------------------------------');
+
+            await Authenticate();
+
+            sensor_name = document.getElementById("sensorName").value;
+            channel_name = document.getElementById("channelName").value;
+
+            if (sensor_name == null || sensor_name == undefined || sensor_name === "" ||
+                channel_name == null || channel_name == undefined || channel_name === "") {
+                alert('Sensor Name and Channel Name cannot be empty')
+                return;
+            }
+
+            start_time = dtpickerStart;
+            end_time = dtpickerEnd;
+
+            start_time = start_time * Math.pow(10, 6);
+            end_time = end_time * Math.pow(10, 6);
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/streams/timeseries/data/?version=${lordVersion}&auth_token=${auth_token}&starttime=${start_time}&endtime=${end_time}`; // &showSampleRateBoundary=false&specificsamplerate=hertz-5
+            // /SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/streams/timeseries/data/?version=${lordVersion}&auth_token=${auth_token}&starttime=${start_time}&endtime=${end_time}[&showSampleRateBoundary=<true false>][&specificsamplerate=<samplerate>]
+            var url = 'https://' + auth_server + path;
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/xdr',
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+            }
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log(response);
+                    if (response.ok) {
+                        return response.arrayBuffer();
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                })
+                .then(function (data) {
+
+                    if (0) {
+                        console.log('data', data);
+                        var len = data.byteLength;
+                        var view1 = new DataView(data);
+                        var arr = [];
+                        for (var i = 0; i < len; i++) {
+                            var el = view1.getUint8(i).toString(16);
+                            arr[i] = el;
+                        }
+                        console.log(arr.join(" "));
+                    }
+
+                    var numberOfPoints = data.byteLength * 2 / 3 / 8;
+                    console.log('number of points', numberOfPoints);
+
+                    let xdr = XDR.config((xdr) => {
+
+                        xdr.struct('DataPoints', [
+                            ["timestamp", xdr.uhyper()],
+                            ["value", xdr.float()],
+                        ]);
+
+                        xdr.struct('Signature', [
+                            // ["data_points", xdr.varArray(xdr.lookup("DataPoints"))],
+                            ["data_points", xdr.array(xdr.lookup("DataPoints"), numberOfPoints)],
+                        ]);
+                    });
+
+                    var sig = xdr.Signature.fromXDR(data);
+
+                    console.log(sig);
+
+                    var SENSORS = new Object();
+
+                }).catch(function (error) {
+                    console.log(error.message);
+                });
+        }
+        async function DownloadLatestTimeSeriesData() {
+            console.log('\r\n------------------------------- DownLoad Latest Data -------------------------------');
+
+            await Authenticate();
+
+            sensor_name = document.getElementById("sensorName").value;
+            channel_name = document.getElementById("channelName").value;
+
+            if (sensor_name == null || sensor_name == undefined || sensor_name === "" || channel_name == null || channel_name == undefined || channel_name === "") {
+                alert('Sensor Name and Channel Name cannot be empty')
+                return;
+            }
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/${sensor_name}/channels/${channel_name}/streams/timeseries/data/latest/?version=${lordVersion}&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/xdr',
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+            }
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log(response);
+                    if (response.ok) {
+                        return response.arrayBuffer();
+                    } else {
+                        throw new Error(response.statusText);
+                    }
+                })
+                .then(function (data) {
+
+                    if (1) {
+                        console.log(data);
+                        var len = data.byteLength;
+                        var view1 = new DataView(data);
+                        var arr = [];
+                        for (var i = 0; i < len; i++) {
+                            var el = view1.getUint8(i).toString(16);
+                            arr[i] = el;
+                        }
+                        console.log(arr.join(" "));
+                    }
+
+                    let xdr = XDR.config((xdr) => {
+
+                        xdr.struct('Signature', [
+                            ["timestamp", xdr.uhyper()],
+                            ["value", xdr.float()],
+                        ]);
+                    });
+
+                    var sig = xdr.Signature.fromXDR(data);
+
+                    console.log(sig);
+
+                    var SENSORS = new Object();
+
+                }).catch(function (error) {
+                    console.log(error.message);
+                });
+        }
+
+
+    </script>
+</body>
+
+</html>

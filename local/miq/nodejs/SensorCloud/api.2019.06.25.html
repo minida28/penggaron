@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <script src="https://cdn.jsdelivr.net/npm/js-xdr@1.1.2/dist/xdr.js">
+
+        // var xdr = require('js-xdr');
+        var test = XDR.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(test);
+
+        // var xdr = new XDR();
+        // var test = xdr.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(gila());
+
+    </script>
+    <!-- <script src="bundle.js">
+    window.XDR = require('js-xdr')
+    </script> -->
+</head>
+
+<body>
+
+    <h1>The XMLHttpRequest Object</h1>
+
+    <button type="button" onclick="Authenticate()">Authenticate</button>
+    <br>
+    <button type="button" onclick="GetSensor()">Get Sensor</button>
+    <button type="button" onclick="logUnderscoreVersion()">logUnderscoreVersion</button>
+
+
+
+    <p id="auth_server"></p>
+    <p id="auth_token"></p>
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/1.0.2/stellar-sdk.min.js"></script>
+    <script>
+        // console.log(StellarSdk);
+    </script> -->
+
+    <!-- <script src="main.js"></script> -->
+
+
+
+
+
+
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/js-xdr@1.1.2/dist/xdr.js">
+
+        // var xdr = require('js-xdr');
+        var test = XDR.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(test);
+
+        // var xdr = new XDR();
+        // var test = xdr.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(gila());
+
+    </script> -->
+
+
+
+    <script>
+        var test = XDR.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        console.log(test);
+        // console.log(test);
+        // var test = xdr.Bool.fromXDR([0, 0, 0, 0]); // returns false
+        // console.log(test);
+
+        var lordHostName = "sensorcloud.microstrain.com";
+        var device_id = "OAPI00D4CMV2RPWF";
+        var key = "2d73ff3acdf9adf70a0c7641c5c6c2e9d185cba06cdb42d1ca6ace5273fdec2b";
+
+        var auth_server = 'dsx.sensorcloud.microstrain.com';
+        var auth_token = 'oc5a84d4ac7b39b0e0e21070bcddabb3e1616180f50d1df5e12';
+
+
+        function Authenticate() {
+
+            var path = `/SensorCloud/devices/${device_id}/authenticate/?version=1&key=${key}`;
+            var url = 'https://' + lordHostName + path;
+
+            const request = new Request(url, {
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                }
+            })
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                timeout: 100,
+                // method: 'GET',
+                // mode: 'no-cors', // no-cors, cors, *same-origin
+                // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                // credentials: 'same-origin', // include, *same-origin, omit
+                // headers: {
+                //     'Accept': 'application/xdr',
+                //     // 'Accept': 'application/json',
+                // },
+                // redirect: 'follow', // manual, *follow, error
+                // referrer: 'no-referrer', // no-referrer, *client
+                // body: JSON.stringify(data), // body data type must match "Content-Type" header
+            }
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log("Response:", response);
+                    var acceptHeader = req_options.headers['Accept'];
+                    if (acceptHeader === 'application/json') {
+                        return response.json();
+                    } else if (acceptHeader === 'application/xdr') {
+                        // return response.arrayBuffer();
+                        return response.text();
+                    }
+                })
+                .then(function (data) {
+                    // ���3occb378c1e8fbd48507c807f65ece9bfa7468bcba090d2fdb69�����dsx.sensorcloud.microstrain.com�����
+                    console.log(data);
+                    var acceptHeader = req_options.headers['Accept'];
+                    if (acceptHeader === 'application/json') {
+                        auth_server = data.server;
+                        auth_token = data.auth_token;
+                        console.log(auth_server, auth_token);
+                    } else if (acceptHeader === 'application/xdr') {
+                        var len = data.byteLength;
+
+                        // console.log(data.toString(16));
+
+                        // Data View
+                        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+                        // var view1 = new DataView(data);
+                        // // console.log(view1.getInt32(0).toString(16));
+                        // var arr = [];
+                        // for (var i = 0; i < len; i++) {
+                        //     // var el = view1.getUint32(i).toString(16);
+                        //     var el = view1.getUint32(i);
+                        //     // console.log(el);
+                        //     arr[i] = el;
+                        // }
+                        // console.log(arr.join(" "));
+
+
+                        let xdr = XDR.config((xdr) => {
+
+                            xdr.struct('Signature', [
+                                ["auth_server", xdr.string(100)],
+                                ["auth_token", xdr.string(100)],
+                            ]);
+                        });
+
+                        // // var sig = xdr.Signature.fromXDR(data);
+
+                        // var constructedData = [].concat(arr);
+                        var sig = xdr.Signature.fromXDR(data);
+
+                        console.log(sig);
+
+                    }
+
+
+                    // var arr = [];
+                    // for (var i = 0; i < myJson.length; i++) {
+                    //     var c = data[i];
+
+                    //     if (c >= 48 && c < 127) {
+                    //         console.log(c);
+                    //         arr.push(String.fromCharCode(c));
+                    //     } else {
+                    //         var hexString = c.toString(16);
+                    //         var yourNumber = '0x' + hexString;
+                    //         // var yourNumber = hexString;
+                    //         console.log(yourNumber);
+                    //         arr.push(yourNumber);
+                    //     }
+
+
+                    //     // var hexString = c.toString(16);
+                    //     // var yourNumber = '0x' + hexString;
+                    //     // // console.log(yourNumber);
+                    //     // arr.push(yourNumber);
+                    // }
+
+                    // console.log(arr)
+                });
+
+        }
+
+        function GetSensor() {
+
+            // Authenticate();
+
+            var path = `/SensorCloud/devices/${device_id}/sensors/?version=1&auth_token=${auth_token}`;
+            var url = 'https://' + auth_server + path;
+
+            const request = new Request(url, {
+                headers: {
+                    // 'Accept': 'application/xdr',
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                }
+            })
+
+            const req_options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/xdr',
+                    // 'Accept': 'application/json',
+                    // 'Content-Type': 'application/json',
+                },
+                // method: 'GET',
+                // mode: 'navigate', // no-cors, cors, *same-origin
+                // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                // credentials: 'same-origin', // include, *same-origin, omit
+                // headers: {
+                //     'Accept': 'application/xdr',
+                //     // 'Accept': 'application/json',
+                // },
+                // redirect: 'follow', // manual, *follow, error
+                // referrer: 'no-referrer', // no-referrer, *client
+                // body: JSON.stringify(data), // body data type must match "Content-Type" header
+            }
+
+            fetch(url, req_options)
+                .then(function (response) {
+                    console.log(response);
+                    return response.arrayBuffer();
+                    // return response.text();
+                })
+                .then(function (data) {
+                    // ���3occb378c1e8fbd48507c807f65ece9bfa7468bcba090d2fdb69�����dsx.sensorcloud.microstrain.com�����
+                    console.log(data);
+                    var len = data.byteLength;
+                    // console.log(data.toString(16));
+                    var view1 = new DataView(data);
+                    // console.log(view1.getInt32(0).toString(16));
+                    var arr = [];
+                    for (var i = 215; i < len; i++) {
+                        var el = view1.getUint8(i).toString(16);
+                        // var el = view1.getUint8(i);
+                        // console.log(el);
+                        arr[i] = el;
+                    }
+                    console.log(arr.join(" "));
+
+                    // var server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+
+                    // let xdr = StellarSdk.config((xdr) => {
+
+                    // });
+
+                    // XDR.Bool.fromXDR([0, 0, 0, 0]); // returns false
+
+                    // console.log(gila)
+
+                    let xdr = XDR.config((xdr) => {
+
+                        xdr.struct('Signature', [
+                            ['version', xdr.int()],
+                            ['numSensor', xdr.int()],
+
+                            ["name", xdr.string(50)],
+                            ["type", xdr.string(50)],
+                            ["label", xdr.string(50)],
+                            ["desc", xdr.string(50)],
+
+                            ['numChannel', xdr.int()],
+
+                            ["ch_name", xdr.string(50)],
+                            ["ch_label", xdr.string(50)],
+                            ["ch_desc", xdr.string(50)],
+
+                            ['numStreams', xdr.int()],
+                            ["stream_type", xdr.string(50)],
+                            ["total_bytes", xdr.int()],
+
+                            ['numUnits', xdr.int()],
+                            ["stored_unit", xdr.string(50)],
+                            ["preferred_unit", xdr.string(50)],
+                            ["unit_timestamp", xdr.uhyper()],
+                            ["slope", xdr.float()],
+                            ["offset", xdr.float()],
+
+                            ["ch_name2", xdr.string(50)],
+                            ["ch_label2", xdr.string(50)],
+                            ["ch_desc2", xdr.string(50)],
+                            ['numStreams2', xdr.int()],
+                            ["stream_type2", xdr.string(50)],
+
+                            ["total_bytes2", xdr.int()],
+
+                            ['numUnits2', xdr.int()],
+                            ["stored_unit2", xdr.string(50)],
+                            ["preferred_unit2", xdr.string(50)],
+                            ["unit_timestamp2", xdr.uhyper()],
+                            ["slope2", xdr.float()],
+                            ["offset2", xdr.float()],
+
+
+                            ["name2", xdr.string(50)],
+                            ["type2", xdr.string(50)],
+                            ["label2", xdr.string(50)],
+                            ["desc2", xdr.string(50)],
+
+                            ['numChannel2', xdr.int()],
+
+                            ["ch_name2-1", xdr.string(50)],
+                            ["ch_label2-1", xdr.string(50)],
+                            ["ch_desc2-1", xdr.string(50)],
+
+                            ['numStreams2-1', xdr.int()],
+                            ["stream_type2-1", xdr.string(50)],
+                            ["total_bytes2-1", xdr.int()],
+
+                            ['numUnits2-1', xdr.int()],
+                            ["stored_unit2-1", xdr.string(50)],
+                            ["preferred_unit2-1", xdr.string(50)],
+                            ["unit_timestamp2-1", xdr.uhyper()],
+                            ["slope2-1", xdr.float()],
+                            ["offset2-1", xdr.float()],
+
+                        ]);
+                    });
+
+
+
+
+
+                    var sig = xdr.Signature.fromXDR(data);
+
+                    // var constructedData = [].concat(arr);
+                    // var sig = xdr.Signature.fromXDR(constructedData);
+
+                    console.log(sig);
+                    console.log(Object.entries(sig));
+                    console.log(sig._attributes['ch_desc'].toString());
+                    console.log(JSON.parse(JSON.stringify(sig)));
+                    var keys = Object.keys(sig._attributes);
+
+                    console.log(keys.length, keys);
+                    for (var i = 0; i < keys.length; i++) {
+                        var val = keys[i];
+                        console.log(sig._attributes[val].toString())
+                    }
+
+                    // var string = new TextDecoder("utf-8").decode(sig.ch_name);
+                    // console.log(string);
+
+
+                    // var arr = [];
+                    // for (var i = 0; i < myJson.length; i++) {
+                    //     var c = data[i];
+
+                    //     if (c >= 48 && c < 127) {
+                    //         console.log(c);
+                    //         arr.push(String.fromCharCode(c));
+                    //     } else {
+                    //         var hexString = c.toString(16);
+                    //         var yourNumber = '0x' + hexString;
+                    //         // var yourNumber = hexString;
+                    //         console.log(yourNumber);
+                    //         arr.push(yourNumber);
+                    //     }
+
+
+                    //     // var hexString = c.toString(16);
+                    //     // var yourNumber = '0x' + hexString;
+                    //     // // console.log(yourNumber);
+                    //     // arr.push(yourNumber);
+                    // }
+
+                    // console.log(arr)
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>
